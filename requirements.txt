@@ -1,5 +1,19 @@
+cython<3.0.0
+opencv-python 
+matplotlib 
 pandas
+pillow 
 plotly
-pytorch
+pyyaml==5.4.1
+torch==1.13
+torchvision 
 transformers
+yolo5==7.0.13
 
+# # may need to run following contraints to install detectron2
+# !echo "cython<3" > /tmp/constraint.txt
+# !PIP_CONSTRAINT=/tmp/constraint.txt pip install 
+# 'git+https://github.com/facebookresearch/detectron2.git'
+
+# mbari specific apia
+fathomnet
