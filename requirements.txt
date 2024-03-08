@@ -1,3 +1,4 @@
+basicsr==1.4.2
 cython<3.0.0
 onnxruntime
 opencv-python 
@@ -6,6 +7,7 @@ pandas
 pillow 
 plotly
 pyyaml==5.4.1
+realesrgan==0.3.0
 torch==1.13
 torchvision 
 transformers
