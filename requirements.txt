@@ -8,10 +8,14 @@ pillow
 plotly
 pyyaml==5.4.1
 realesrgan==0.3.0
-torch==1.13
+# torch==1.13
 torchvision 
 transformers
-yolo5==7.0.13
+# yolo5==7.0.13
+
+numpy
+torch>=1.7
+tqdm
 
 # # may need to run following contraints to install detectron2
 # !echo "cython<3" > /tmp/constraint.txt
