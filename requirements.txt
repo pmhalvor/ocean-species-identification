@@ -1,14 +1,23 @@
+basicsr==1.4.2
 cython<3.0.0
+onnxruntime
 opencv-python 
 matplotlib 
 pandas
 pillow 
 plotly
 pyyaml==5.4.1
-torch==1.13
+realesrgan==0.3.0
 torchvision 
 transformers
-yolo5==7.0.13
+
+# esgan 
+numpy
+torch>=1.7
+tqdm
+
+# hat 
+# basicsr == 1.3.4.9
 
 # # may need to run following contraints to install detectron2
 # !echo "cython<3" > /tmp/constraint.txt
