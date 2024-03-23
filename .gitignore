@@ -1,2 +1,14 @@
 __pycache__/
-images/
+
+# big data 
+image/
+video/
+results/
+
+# big binary files
+*.pkl
+*.pt
+
+# IDE stuff
+.vscode/
+.DS_Store
