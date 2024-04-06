@@ -2,6 +2,7 @@ from src.data import detections_per_category, anns_per_category
 from time import time
 from pycocotools.coco import COCO
 from fathomnet.models.yolov5 import YOLOv5Model
+from fathomnet.api import boundingboxes as bb
 
 from typing import List, Any 
 
@@ -80,7 +81,6 @@ def evaluate_bboxes(
                 for i, coord in enumerate(true_box_coords)
             ]
 
-
             # ensure we handle trash labels properly! 
             if pred_class_id == one_idx and true_class_id in many_idx:
                 pred_class_id = true_class_id
@@ -153,6 +153,46 @@ def evaluate_detections(
     precision, recall = calculate_precision_recall(tp, fp, fn)
 
     return precision, recall, ious
+
+
+def evaluate_fathomnet(
+        detections,  # 
+        anns,  # : List[bb.BoundingBoxes]
+        id_map: dict=None, 
+        N: int=-1, 
+        return_confusion_metrics: bool=False,
+        **kwargs
+    ):
+    """
+    Evaluate detections on a single image. 
+    Returns precision and recall.
+
+    Args:
+        detections (list): list of detections for a single image
+        anns (list): list of annotations for a single image
+    """
+    tp, fp, fn, ious = 0, 0, 0, []
+
+    for i, (pred_boxes, true_boxes) in enumerate(zip(detections.xyxy[:N], anns[:N])):
+        tp_, fp_, fn_, ious_ = evaluate_bboxes(
+            pred_boxes, 
+            true_boxes, 
+            id_map=id_map, 
+            **kwargs
+        )
+        
+        tp += tp_
+        fp += fp_
+        fn += fn_
+        ious.extend(ious_)
+
+    if return_confusion_metrics:
+        return tp, fp, fn, ious
+            
+    precision, recall = calculate_precision_recall(tp, fp, fn)
+
+    return precision, recall, ious
+
 
 
 def print_precision_recall_iou(precision, recall, iou):
