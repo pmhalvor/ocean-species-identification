@@ -13,8 +13,8 @@ from img2vid import convert
 bounding_box = {'top': 100, 'left': 800, 'width': 800, 'height': 750}
 
 # frame per second
-FPS = 4 
-FRAME_COUNT = 50
+FPS = 250
+FRAME_COUNT = 75
 
 # prep for save 
 save_dir = Path("data") / "video"
@@ -28,10 +28,12 @@ os.makedirs(output_dir, exist_ok=True)
 
 # capture loop
 frames = []
+fps = 0
 
 with mss() as sct:
-    monitor = sct.monitors[-1]  # bounding_box  
+    monitor = sct.monitors[0]#-1]  # bounding_box  
 
+    start = time.time()
     for i in range(FRAME_COUNT):
         sct_img = sct.grab(monitor)
 
@@ -40,16 +42,19 @@ with mss() as sct:
         frames.append(arr)
 
         # cv2 swaps these for some reason? 
-        if len(sct.monitors) > 2:
-            cv2.imshow(capture_name, cv2.cvtColor(arr, cv2.COLOR_RGB2BGR))
+        # if len(sct.monitors) > 2:
+        #     cv2.imshow(capture_name, cv2.cvtColor(arr, cv2.COLOR_RGB2BGR))
 
         if (cv2.waitKey(1) & 0xFF) == ord('q'):
             cv2.destroyAllWindows()
             break
 
-        time.sleep(1.0/FPS) # 1/FPS = seconds per frame
+        time.sleep(1.0/FPS) # at least 1/FPS seconds between every frame
 
         print(f'Frame {i} captured ', arr.shape)
+
+    print(f"Captured {len(frames)} frames in {time.time()-start} seconds. FPS: {len(frames)/(time.time()-start)}")
+    fps = len(frames)/(time.time()-start)
 
 cv2.destroyAllWindows()
 
@@ -64,4 +69,4 @@ for j, img in enumerate(imgs):
 print("capture saved at ", output_dir)
 
 # convert to video
-convert(output_dir, output_dir / f"{capture_name}_{capture_number:03d}.mp4", img_prefix="frame_", img_suffix=".jpg", fps=FPS)
+convert(output_dir, output_dir / f"{capture_name}_{capture_number:03d}.mp4", img_prefix="frame_", img_suffix=".jpg", fps=fps)

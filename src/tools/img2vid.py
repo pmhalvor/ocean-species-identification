@@ -29,7 +29,12 @@ def convert(img_dir, output_name="output.mp4", img_prefix="", img_suffix=".jpg",
         print(os.listdir(img_dir))
         return
     
-    out = cv2.VideoWriter(str(output_name), cv2.VideoWriter_fourcc(*"MP4V"), int(fps), size)
+    out = cv2.VideoWriter(
+        filename=str(output_name), 
+        fourcc=cv2.VideoWriter_fourcc(*"MP4V"), 
+        fps=int(fps), 
+        frameSize=size
+    )
 
     for i in range(len(img_array)):
         out.write(img_array[i])
