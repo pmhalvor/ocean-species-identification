@@ -25,4 +25,4 @@ def crop_gif(input_file, output_file, x1, y1, x2, y2):
 
 # Replace 'input.gif', 'output_cropped.gif' with your file names
 # Replace x1, y1, x2, y2 with the coordinates of the top-left and bottom-right corners of the crop region
-crop_gif('../data/example/aquarium_032_mot.gif', '../data/example/aquarium_032_mot_cropped.gif', x1=100, y1=70, x2=1750, y2=1080)
+crop_gif('img/mot/sea_feather_mot.gif', 'data/example/sea_feather_mot_cropped.gif', x1=560, y1=125, x2=1385, y2=950)
