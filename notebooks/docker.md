@@ -179,9 +179,267 @@ $ docker images
 This will list all the images that have been downloaded or built on your machine.
 If you've just downloaded Docker Desktop, you probably won't have any images yet.
 
-Let's head over to the [Docker Hub](https://hub.docker.com/) and search for an image to download.
+Let's head over to the [Docker Hub](https://hub.docker.com/) and find an image to download.
 
 ### Pulling and pushing images
 <!-- Download pytorch image -->
+Since we have been working with Python 3.11 for other parts of this series, let's pull an official Python image from [Docker Hub](https://hub.docker.com/_/python). 
+For easy compatibility, we will pull the `bullseye` tag, which is based on Debian 11. 
+If we were looking for a smaller image, we could have chosen the `slim` tag, which is based on Debian 11 slim, or better yet the `alpine` tag, which is typically used for lightweight images.
+
+```
+$ docker pull python:3.11-bullseye
+
+3.11.9-bullseye: Pulling from library/python
+197947a07d5f: Pull complete
+31e3f4a53068: Pull complete
+27317b8832e1: Pull complete
+191dceb3c577: Pull complete
+e2c5617071f9: Pull complete
+82bfb246d40b: Pull complete
+a8322d0f73c0: Pull complete
+16945523aa37: Pull complete
+Digest: sha256:8d7733affcd43dd64c072a0c22a731255326cec3683ff0ef616d9041d364aa1d
+Status: Downloaded newer image for python:3.11.9-bullseye
+docker.io/library/python:3.11.9-bullseye
+```
+
+Up until this point, we've been talking about containers as some application or executable that we want to run.
+But this image is just a Python environment, not an application.
+There's no program in it yet, just an empty filesystem with Python installed.
+We can run this image as a container, and see what happens.
+
+```bash
+$ docker run python:3.11.9-bullseye
+```
+
+Nothing happens. 
+<img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExYjJxOXpwdHQwdHUza3d6NXBscGx5bHM2dnNjdG44ZHNqZm9xYjd4eCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/TKXbwmrE0vkWmVFCUX/giphy.gif" width="400" height="400" style="display: block; margin: 0 auto;" />
+
+That's because we didn't tell the container to do anything.
+Let's try running Python instead.
+To start, we'll just check the version. 
+
+```bash
+$ docker run python:3.11.9-bullseye python --version
+Python 3.11.9
+```
+
+Great, but does this mean we can run a local Python script using the container?
+Let's create a local Python file and test it out. 
+```bash
+$ echo "greet = lambda x,n: print(x*n); greet('hello world ', 2)" > greet.py
+$ docker run python:3.11.9-bullseye python greet.py
+
+python: can't open file '//greet.py': [Errno 2] No such file or directory
+```
+This won't work because the container doesn't have access to the local filesystem, hence the _isolated environments_ mentioned earlier.
+The container can only  see inside its own filesystem, by default, but can be given access to the host filesystem using volumes. 
+More on that later. 
+
+Let's instead stick to the basics, and try to start a Python shell inside the container.
+
+```python
+$ docker run --rm -it python:3.11.9-bullseye python
+
+Python 3.11.9 (main, Apr 10 2024, 11:55:03) [GCC 10.2.1 20210110] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import os
+>>> os.listdir()
+['srv', 'boot', 'sys', 'lib', 'var', 'etc', 'root', 'tmp', 'mnt', 'run', 'proc', 'sbin', 'home', 'opt', 'bin', 'media', 'usr', 'dev', '.dockerenv']
+```
+
+Now we can see the internal files of the container.
+If we are using another Linux based image, but without a Python installation, we could also just start a bash shell inside the container. 
+This gives us the ability to check what is installed in the container, and potentially install new packages. 
+
+```bash
+$ docker run --rm -it debian:bullseye bash
+
+root@f5cz1337a85e:/# ls
+
+bin  boot  dev	etc  home  lib	media  mnt  opt  proc  root  run  sbin	srv  sys  tmp  usr  var
+```
+
+In our container, we can see that Python is installed, along with `git`, `curl`, `apt-get`, and other basic utilities that come with a Debian distribution. 
+
+
+
+### Build custom images
+So, the question then is, how can we then run a container with our own code inside? 
+This is where the `Dockerfile` comes in.
+<img src="../img/Dockerfile.png" width="500" style="display: block; margin: 0 auto;" />
+<div style="text-align:center;">Source: <i>Understand Dockerfile by Rocky Chen (<a href="https://medium.com/swlh/understand-dockerfile-dd11746ed183">Medium</a>)</i></div>
+
+Dockerfiles are text files that contain a series of instructions for building a Docker image.
+They typically start with a `FROM` instruction, which specifies the base image to build upon.
+This can be an official image from Docker Hub, like `python:3.11.9-bullseye`, or a custom image that you've built yourself.
+There are no limits to how many instructions you can include in a Dockerfile, but it is recommended to keep them as minimal as possible to reduce the image size and build time.
+
+It's typically a good idea to start with a base image that already has the necessary tools and libraries installed, and then add your own code and dependencies on top of that.
+If your team typically using the same preprocessing steps or other common tasks, you could also consider creating a base image that includes these steps, and then build your application on top of that.
+
+Here's an example of a simple Dockerfile that builds an image with Python 3.11.9 installed and our Python script `greet.py` made earlier, that prints "hello world" a few times.
+
+```Dockerfile
+# Use the official Python image as a parent image
+FROM python:3.11.9-bullseye
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy our file into the container at /app
+COPY greet.py /app
+
+# Run greet.py when the container launches
+CMD ["python", "greet.py"]
+```
+
+To build the image, we can run the following command in the same directory as the `Dockerfile` and `greet.py` file:
+
+```bash
+$ docker build -t greet-app:1 .
+```
+
+This will create a new image called `greet-app` based on the instructions in the `Dockerfile`.
+The image is currently only available on your local machine, but you can push it to Docker Hub or another registry to make it available to others.
+Before we go that though, let's check it runs as expected.
+
+```bash
+$ docker run greet-app:1
+hello world hello world
+```
+
+Sweet!
+Let's now increase the complexity a bit more, by adding a Python script that takes in arguments. 
+We can make some adjustments to our `greet.py` file from earlier, and call the new file `greet2.py`:
+
+```python
+def greet(x, n):
+    print(x*n)
+
+if __name__ == "__main__":
+    import sys
+    greet(sys.argv[1], int(sys.argv[2]))
+```
+
+We will need to revist our `Dockerfile` to include the new script, and configure it to allow arguments to be passed when running the container. 
+
+
+```Dockerfile
+# Use the official Python image as a parent image
+FROM python:3.11.9-bullseye
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy the script into the container at /app
+COPY greet2.py /app
+
+# Run greet2.py when the container launches with ENTRYPOINT
+ENTRYPOINT ["python", "greet2.py"]
+```
+
+Running this should give:
+```bash
+$ docker build -t greet-app:2 .
+$ docker run greet2-app "hello earthling " 3
+
+hello earthling hello earthling hello earthling
+```
+
+Now, we would like the container to be able to read in local files, as input data, do some transformation, then write output files _to our local machine_.
+Remember, if we write to the container's filesystem, the data will be lost when the container exits (at the end of the run call).
+
+We start by tweaking our Python script to write the output to a file, instead of printing it to the console. We'll call this one `greet3.py`: 
+
+```python
+def greet(x, n):
+    print(x*n)
+    return x*n
+
+def write_greeting(x, n, output_file, ext="txt"):
+    greeting = greet(x, n)
+    with open(f"{output_file}.{ext}", "w") as f:
+        f.write(x*n)
+
+if __name__ == "__main__":
+    import sys
+    write_greeting(sys.argv[1], int(sys.argv[2]), sys.argv[3] if len(sys.argv) > 3 else "output")
+```
+
+We'll also need to make some adjustments to our Dockerfile as well, to allow the container to write to the host filesystem.
+
+```Dockerfile
+# Use the official Python image as a parent image
+FROM python:3.11.9-bullseye
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy the script into the container at /app
+COPY greet3.py /app
+
+# Run greet3.py when the container launches with ENTRYPOINT
+ENTRYPOINT ["python", "greet3.py"]
+```
+
+To allow the container to write to the host filesystem, we need to use a volume.
+Volumes are a way to persist data between container runs, and they can be used to share data between the host machine and the container.
+To mount a volume, we can use the `-v` flag when running the container, specifying the path on the host machine where the data should be stored.
+
+```bash
+$ docker build -t greet-app:3 .
+$ docker run -v $(pwd):/app greet-app:3 "hello alien " 3 "local_output"
+$ cat local_output.txt
+
+hello alien hello alien hello alien
+```
+With these basic functionalities in place, we can now move on to more complex tasks, relying on other libraries and tools.
+
+
+# Our simple example
+As a part of the exploration and discovery phase for a previous blog post on [multiple object tracking](https://perhalvorsen.com/media/notes/multiple_object_tracking.html), I created a small Python script that takes a series of images and converts them into a video, using the `opencv` library.
+You can find the script at [src/tools/img2vid.py](https://github.com/pmhalvor/ocean-species-identification/blob/master/src/tools/img2vid.py).
+
+This file can be used as such:
+```bash
+$ python3 img2video.py <file_pattern> <output_name>
+```
+
+To make this script more accessible, we can create a Docker image that runs the script as an executable.
+This way, users don't need to have `opencv` installed on their local machine, or even Python for that matter.
+They can simply run the Docker container with the input files and get the output video.
+
+Let's start by creating a Dockerfile that builds an image with the `img2vid.py` script and the necessary dependencies installed.
+
+```Dockerfile
+# Use the official Python image as a parent image
+FROM python:3.11.9-bullseye
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy the script into the container at /app
+COPY img2vid.py /app
+
+# Install the necessary dependencies
+RUN pip install opencv-python
+
+# Run img2vid.py when the container launches
+ENTRYPOINT ["python", "img2vid.py"]
+```
+
+We can build the image and run the container with the following commands:
+
+```bash
+$ docker build -t img2vid-app:1 .
+$ docker run -v $(pwd)/../data/examples/:/app img2vid-app:1 "mba/*.jpg" "output.mp4"
+```
+
+To clarify, we are trying to mount the `data/examples/` directory from the parent directory of the current working directory, to the `/app` directory inside the container.
+This way, the container can access the input files and write the output video to the host filesystem.
+
+
 
 
