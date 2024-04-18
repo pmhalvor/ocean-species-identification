@@ -91,7 +91,7 @@ Whether the product needs to be deployed to a server with a different OS than th
 Now, what if I told you there exists a tool that can solve all these problems and more? 
 
 <!-- Drumroll gif -->
-<img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExaGo2MmZvbXd2ZjAyM2d4bHY3OGZhdDNuYnFyOTN5dHZtNDZ2bDFuZiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/MZGH2MEUcfjVvIm2oR/giphy.gif" width="400" height="400" style="display: block; margin: 0 auto;" />
+<img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExaGo2MmZvbXd2ZjAyM2d4bHY3OGZhdDNuYnFyOTN5dHZtNDZ2bDFuZiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/MZGH2MEUcfjVvIm2oR/giphy.gif" width="400" style="display: block; margin: 0 auto;" />
 
 
 ## Solution
@@ -131,6 +131,10 @@ A **_build_** is the process of creating a Docker image from a Dockerfile. This 
 The **_host machine_** is the machine on which Docker is installed and running. This is where the Docker daemon is running, managing containers, images, networks, and volumes.
 If you are following along and running the example commands in this note, your local machine is considered the host machine.
 
+<img src="../img/Dockerfile.png" width="500" style="display: block; margin: 0 auto;" />
+<div style="text-align:center;">Source: <i>Understand Dockerfile by Rocky Chen (<a href="https://medium.com/swlh/understand-dockerfile-dd11746ed183">Medium</a>)</i></div>
+<br>
+
 **Additional**
 (Good to know)
 
@@ -149,7 +153,7 @@ They share the host operating system's kernel and run as a nested process, isola
 
 With the Docker client (`docker`), containers can be easily built, run, shared, and deleted, making them ideal for development, testing, and deployment.
 This CLI is the fastest way to interact with Docker, but there are also GUIs available, like [Docker Desktop](https://www.docker.com/products/docker-desktop), which provides a graphical interface for managing containers, images, networks, and volumes.
-Docker desktop is usually bundled with the Docker engine, which is the underlying software that runs and manages containers on the host machine.
+Docker Desktop is usually bundled with the Docker engine, which is the underlying software that runs and manages containers on the host machine.
 
 
 The Docker client communicates with the Docker daemon (`dockerd`), which is responsible for managing containers, images, networks, and volumes on the host machine.
@@ -164,7 +168,7 @@ The daemon listens for API requests and manages the container lifecycle, includi
 To get started with Docker, you need to have [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed on your local machine.
 The tool is free for teams under 250 or less than $10 million in annual revenue, and it is available for Windows, Mac, and Linux operating systems.
 
-In addition to the Docker Desktop, it could be useful to have a [Docker Hub](https://hub.docker.com/).
+In addition to the Docker Desktop, it could be useful to have a [Docker Hub](https://hub.docker.com/) account.
 This is a cloud-based registry where you can store and share Docker images, either publicly or privately.
 It is also a place to find official images for popular software packages, as well as community-contributed images for a wide range of applications.
 If you only plan on using others' images, then you don't need an account. 
@@ -236,7 +240,9 @@ $ docker run python:3.11.9-bullseye
 ```
 
 Nothing happens. 
-<img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExYjJxOXpwdHQwdHUza3d6NXBscGx5bHM2dnNjdG44ZHNqZm9xYjd4eCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/TKXbwmrE0vkWmVFCUX/giphy.gif" width="400" height="400" style="display: block; margin: 0 auto;" />
+
+<img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExYjJxOXpwdHQwdHUza3d6NXBscGx5bHM2dnNjdG44ZHNqZm9xYjd4eCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/TKXbwmrE0vkWmVFCUX/giphy.gif" width="400" style="display: block; margin: 0 auto;" />
+<br>
 
 That's because we didn't tell the container to do anything.
 Let's try running Python instead.
@@ -290,8 +296,10 @@ In our container, we can see that Python is installed, along with `git`, `curl`,
 ### Build custom images
 So, the question then is, how can we then run a container with our own code inside? 
 This is where the `Dockerfile` comes in.
+
 <img src="../img/Dockerfile.png" width="500" style="display: block; margin: 0 auto;" />
 <div style="text-align:center;">Source: <i>Understand Dockerfile by Rocky Chen (<a href="https://medium.com/swlh/understand-dockerfile-dd11746ed183">Medium</a>)</i></div>
+<br>
 
 Dockerfiles are text files that contain a series of instructions for building a Docker image.
 They typically start with a `FROM` instruction, which specifies the base image to build upon.
@@ -790,9 +798,47 @@ Now we can build and run:
 ```bash
 $ docker build -t img2vid-app:gradio -f docker/Dockerfile .
 $ docker run -p 7861:7861 img2vid-app:gradio
-
-
 ```
+
+If all goes well, you should now be able to interact with the app, upload your images, convert them to a video, and download the video to your local machine, all from the Docker image. 
+That means, this Docker image can be shared and run on any system with Docker installed. 
+
+<img src="../img/gradio2.png" width="700" style="display: block; margin: 0 auto;" />
+
+To share it with the world, let's push it to Docker Hub.
+
+```bash
+$ docker tag img2vid-app:gradio your-docker-id/img2vid-app:gradio
+$ docker push your-docker-id/img2vid-app:gradio
+```
+
+You have now shipped your first containerized app to the world!
+
+<img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExb2dram8yY3BucGtpNmoxOGN4ejNydTN4ZXNqN2FjZTFlcXpucjJwdSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/FmBhzktIjvdZe/giphy.gif" width="500" style="display: block; margin: 0 auto;" />
+<br>
+
+The image I made for this example can be found at [permortenhalvorsen024/img2vid-app](https://hub.docker.com/r/permortenhalvorsen024/img2vid-app).
+
+# Conclusion
+In this note, we have covered the basics of Docker, including what containers are, how to build images, and how to run containers.
+We looked into data management and storage through mounting volumes.
+On top of Docker fundamentals, we explored how to create a simple Gradio app capable of being served from a container.
+
+We expanded on the simple examples typical in most tutorials by creating a Docker image that runs a Python script to convert a series of images into a video.
+This was a novel Python script we wrote for another project but showcased how Docker can be used as an easy means of sharing tools and scripts with others.
+The dependency on `opencv` and other image processing-specific libraries made it a perfect candidate for containerization.
+The ability to upload and download files through a Gradio app was a nice touch, paving the way for more complex containerized applications, like object detection or tracking models.
+
+By containerizing our applications, we make them more accessible to users who don't have the necessary dependencies installed on their local machines.
+By pushing the Docker images to a registry like Docker Hub, anyone can pull the images and run the applications on their local machines.
+
+## Next Steps 
+* Connect a container to a server, accessible from the internet. 
+* Create a more complex Gradio app that uses a pre-trained object detection model to track objects in a video.
+* Create an SR-MOT pipeline that can be run via a Gradio app from a Docker container. 
+
+
+
 
 
 
