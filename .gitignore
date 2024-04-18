@@ -12,3 +12,6 @@ results/
 # IDE stuff
 .vscode/
 .DS_Store
+
+# Gradio 
+flagged/
