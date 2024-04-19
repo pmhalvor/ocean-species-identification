@@ -4,7 +4,7 @@
 
 ---
 
-## Abstract
+## Introduction
 In this note, we want to explore the basics of containerization with Docker.
 To start the note off, some background terminology needed to understand these technologies is covered, basically summarizing the [Docker overview](https://docs.docker.com/get-started/overview/). 
 From here, we introduce a small example project and go through the necessary steps to build custom images suited specifically to the needs of the project.
@@ -12,39 +12,44 @@ Iterating on these simpler images, we then wrap a simplified machine learning mo
 The note rounds off with some tips on how such a model would be deployed to a server. 
 
 # Outline 
-**[Introduction](#Introduction)**
-* Problem definition
+**[Background](#Background)**
+* [Problem definition](#Problem)
     * Scope 
     * Fields 
-* Best solution
-    * Basic idea of containerization
+* [Best solution](#Solution)
+    * The basic idea of containerization
     * Runnable anywhere
     * Opportunities: local development runnable on the cloud, or easily portable app, like a tool-box. 
-
-Background
-* Vocabulary: summarized notes from [Docker overview](https://docs.docker.com/get-started/overview/)
-* Architecture
-* Diagrams: from various tutorials or draw our own
-* Local requirements
+* [Terminology](#Terminology)
+    * Essential: images, containers, Dockerfile, build, host machine
+    * Additional: registry, repository, volume, network
+* [Architecture](#Architecture)
+    * Docker client
+    * Docker daemon
+    * Diagrams from various tutorials or draw our own
+* [Local requirements](#Local-requirements)
     * Docker Desktop
     * Docker Hub account
     * Installation
-* Basic starter commands 
+
+**[Tutorial](#Tutorial)**
+* [Basic starter commands](#Basic-commands)
     * Browsing images 
     * Pushing and pulling 
     * Run examples 
+    * Shell access: Python and bash
     * Build custom images
 
-A simple example
-* Gradio app
+* [A simple example](#A-simple-example)
+    * Gradio app
     * Expose a port
     * Pip install a library 
     * Save output to a file
     
-Our img2vid example
-* Use the img2vid.py file to start
-* Bake into image and run as executable 
-* Bake into a Gradio app, and run locally
+* [Our img2vid example](#Our-img2vid-example)
+    * Use the img2vid.py file to start
+    * Bake into image and run as executable 
+    * Bake into a Gradio app, and run locally
 <!-- * (Attempt) Run from a server, or just mention and say “More on that later” -->
 
 <!-- A template project
@@ -56,19 +61,20 @@ Our complex example
     * All repos necessary 
     * All configs necessary  -->
 
-Conclusion
+**[Conclusion](#Conclusion)**
 * Recap
+    * Images, containers, running, building
+    * Volumes, port exposure, isolated environments
+    * Gradio app, img2vid example
+    * Installing dependencies, uploading and downloading files
 * Future work
     * Deploy to server
     * More complex scenarios
         * Lightweight images using multistage build or alpine
         * More complex models: multiple-stage pipelines or multiple models
         * Running multiple containers using docker-compose
-        * Networking and volumes using docker-compose
-        * Dockerfile best practices
 
-
-# Introduction
+# Background
 
 ## Problem
 In software development, it is often necessary to run code on different machines, with different operating systems, and with different dependency versions.
@@ -131,7 +137,7 @@ A **_build_** is the process of creating a Docker image from a Dockerfile. This 
 The **_host machine_** is the machine on which Docker is installed and running. This is where the Docker daemon is running, managing containers, images, networks, and volumes.
 If you are following along and running the example commands in this note, your local machine is considered the host machine.
 
-<img src="../img/Dockerfile.png" width="500" style="display: block; margin: 0 auto;" />
+<img src="../img/docker-build-run.png" width="500" style="display: block; margin: 0 auto;" />
 <div style="text-align:center;">Source: <i>Understand Dockerfile by Rocky Chen (<a href="https://medium.com/swlh/understand-dockerfile-dd11746ed183">Medium</a>)</i></div>
 <br>
 
@@ -297,7 +303,7 @@ In our container, we can see that Python is installed, along with `git`, `curl`,
 So, the question then is, how can we then run a container with our own code inside? 
 This is where the `Dockerfile` comes in.
 
-<img src="../img/Dockerfile.png" width="500" style="display: block; margin: 0 auto;" />
+<img src="../img/docker-build-run.png" width="500" style="display: block; margin: 0 auto;" />
 <div style="text-align:center;">Source: <i>Understand Dockerfile by Rocky Chen (<a href="https://medium.com/swlh/understand-dockerfile-dd11746ed183">Medium</a>)</i></div>
 <br>
 
@@ -333,7 +339,7 @@ $ docker build -t greet-app:1 .
 
 This will create a new image called `greet-app` based on the instructions in the `Dockerfile`.
 The image is currently only available on your local machine, but you can push it to Docker Hub or another registry to make it available to others.
-Before we go that though, let's check it runs as expected.
+Before we do that though, let's check it runs as expected.
 
 ```bash
 $ docker run greet-app:1
@@ -495,7 +501,8 @@ For more on the many ways of configuring volumes, refer to the [Docker documenta
 With these basic functionalities in place, we can now move on to more complex tasks, involving external libraries and port exposures.
 
 # A simple example
-To further increase the complexity of our example, we will create a simple [Gradio](https://www.gradio.app/) app that mimics our local greet script, but with a GUI accessible via a web browser.
+Let's expand on the loose example above to a simple [Gradio](https://www.gradio.app/) app that mimics our local greet script, but with a GUI accessible via a web browser.
+This will allow us to explore how to expose a port in a Docker container, install a library, and save outputs to a file.
 
 Gradio is a Python library that allows you to create web interfaces for your machine-learning models, data processing pipelines, or any other Python function.
 It is easy to use and requires minimal code to create a fully functional web app that can be shared with others.
@@ -603,8 +610,8 @@ When you are ready, we can move on to the next section, where we will build a do
 
 
 # Our img2vid example
-For the rest of this note, we will assume we are working from this repository, in the `docker/` folder of the [ocean-species-identification](https://github.com/pmhalvor/ocean-species-identification) repository (unless otherwise mentioned).
-Here, you can also find all of the other files created above. 
+For the rest of this note, we will assume we are working from the root directory of the [ocean-species-identification](https://github.com/pmhalvor/ocean-species-identification) repository (unless otherwise mentioned).
+In [docker/](https://github.com/pmhalvor/ocean-species-identification/tree/master/docker), you can also find all of the other files created above. 
 
 ## img2vid as an executable Docker app
 As a part of the exploration and discovery phase for a previous blog post on [multiple object tracking](https://perhalvorsen.com/media/notes/multiple_object_tracking.html), I created a small Python script that takes a series of images and converts them into a video, using the `opencv` library.
@@ -619,7 +626,7 @@ We can use some example data found locally in this repository at [`data/example/
 (Note: this expects `opencv-python` to be installed in your local environment.)
 
 ```bash
-$ python3 ../src/tools/img2video.py "../data/example/mba/" "aquarium.mp4"
+$ python3 src/tools/img2video.py "data/example/mba/" "aquarium.mp4"
 ```
 The output should look something like this:
 <!-- insert gif when ready  -->
@@ -654,20 +661,19 @@ RUN pip install opencv-python
 # Run img2vid.py when the container launches
 ENTRYPOINT ["python", "img2vid.py"]
 ```
-To avoid duplicating the `img2vid.py` file, we will need to build the image from the parent directory of the repository. That way, we can copy the script into the container without any issues.
+Notice the path provided to the `img2vid.py` script, which assumes the script is located at `src/tools/img2vid.py` in the repository.
+The Dockerfile is expected to be built from the root directory of the repository, where the `src/` directory is located.
 
 We also specify the `INPUT_DIR` and `OUTPUT_DIR` environment variables to allow for easy configuration of the input and output directories. This will help keep our volume mounts clear and concise when running the container.
 
 Finally, we install the necessary dependencies for `opencv` using the `apt-get` package manager. Many of these dependencies come built-in on Mac and Windows machines but are not included in the base Python image we are using.
 
 
-
 ```bash
-$ cd ..
 $ docker build -t img2vid-app:exe -f docker/Dockerfile .
 ```
 
-Remaining in this directory, we can run the container with the input files and get the output video.
+We can now run the container with the input files and get the output video.
 
 ```bash
 $ docker run \
@@ -721,6 +727,9 @@ def prep_input_dir():
     os.makedirs(img_dir, exist_ok=True)
     for file in os.listdir(img_dir):
         os.remove(os.path.join(img_dir, file))
+
+    # prep output dir
+    os.makedirs(OUTPUT_DIR, exist_ok=True)   
     
     return img_dir
 
@@ -820,16 +829,15 @@ You have now shipped your first containerized app to the world!
 The image I made for this example can be found at [permortenhalvorsen024/img2vid-app](https://hub.docker.com/r/permortenhalvorsen024/img2vid-app).
 
 # Conclusion
-In this note, we have covered the basics of Docker, including what containers are, how to build images, and how to run containers.
-We looked into data management and storage through mounting volumes.
-On top of Docker fundamentals, we explored how to create a simple Gradio app capable of being served from a container.
+In this note, we covered the basics of Docker, including how **containers** are running instances of **images**, and how to build and run customized images and containers.
+We looked into data management and storage methods using mounted volumes.
+On top of these Docker fundamentals, we explored how to create and serve a simple Gradio app from within a container.
 
-We expanded on the simple examples typical in most tutorials by creating a Docker image that runs a Python script to convert a series of images into a video.
-This was a novel Python script we wrote for another project but showcased how Docker can be used as an easy means of sharing tools and scripts with others.
-The dependency on `opencv` and other image processing-specific libraries made it a perfect candidate for containerization.
-The ability to upload and download files through a Gradio app was a nice touch, paving the way for more complex containerized applications, like object detection or tracking models.
+We expanded on the simple examples typical in most tutorials by creating a Docker image that runs our own Python script that converts a series of images into a video.
+`img2vid.py` was a novel Python script written for another project but showcased how Docker helps solve the problem of running code with dependencies on different machines, as with `opencv` and its system-specific requirements.
+The ability to upload and download files through a **Gradio** app was a nice touch, paving the way for more complex containerized ML applications, like object detection or tracking models.
 
-By containerizing our applications, we make them more accessible to users who don't have the necessary dependencies installed on their local machines.
+Through containerization, apps are made more accessible to users who don't have (or want) the necessary dependencies installed on their local machines, without any loss of functionality.
 By pushing the Docker images to a registry like Docker Hub, anyone can pull the images and run the applications on their local machines.
 
 ## Next Steps 
