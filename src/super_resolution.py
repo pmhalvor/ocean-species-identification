@@ -2,7 +2,7 @@ from fathomnet.models.yolov5 import YOLOv5Model
 from pathlib import Path
 from PIL import Image
 from PIL import ImageOps
-from typing import List
+from typing import List, Union
 
 import cv2
 import numpy as np
@@ -16,13 +16,18 @@ from tqdm.auto import tqdm
 # ESRGAN imports 
 from basicsr.archs.rrdbnet_arch import RRDBNet
 from realesrgan import RealESRGANer
+# import basicsr.data.degradations  # comment out line 8
 
 # # HAT imports (installed via scripts/get_hat.sh)
 # from hat.archs.hat_arch import HAT
 
 
 class ABPN(torch.nn.Module):
-    def __init__(self, model_path: str, store:bool=True):
+    def __init__(
+            self, 
+            model_path: str="/models/sr_mobile_python/models_modelx4.ort", 
+            store:bool=True
+        ):
         self.model_path = model_path
         self.saved_imgs = {}
         self.store = store
@@ -50,6 +55,7 @@ class ABPN(torch.nn.Module):
 
 
     def inference(self, img_array: np.array) -> np.array:
+        print("Inference", self.model_path)
         # unasure about ability to train an onnx model from a Mac
         ort_session = onnxruntime.InferenceSession(self.model_path)
         ort_inputs = {ort_session.get_inputs()[0].name: img_array}
@@ -129,7 +135,7 @@ class ESRGAN(torch.nn.Module):
     def __init__(
         self, 
         model_name: str="realesr-general-x4v3", 
-        model_dir: str="./",
+        model_dir: str="/models",
         tile=0, 
         tile_pad=10, 
         pre_pad=0, 
@@ -182,6 +188,7 @@ class ESRGAN(torch.nn.Module):
 
         return outputs
     
+
     def enhance(self, img: np.array) -> np.array:
         return self.upsampler.enhance(img)
 
@@ -204,7 +211,7 @@ class Hat(torch.nn.Module):
 
     def __init__(
         self, 
-        weight_path: str = "HAT_SRx4_ImageNet-pretrain.pth", 
+        weight_path: str = "/models/HAT/HAT_SRx4_ImageNet-pretrain.pth", 
         upscale = 4,
         in_chans = 3,
         img_size = 64,
@@ -326,4 +333,36 @@ class Hat(torch.nn.Module):
             outputs += [np.array(img)]
 
         return outputs
+    
+
+class YOLOv5ModelWithUpsample(YOLOv5Model, torch.nn.Module):
+    def __init__(
+            self, 
+            detection_model_path: str = "/models/fathomnet_benthic/mbari-mb-benthic-33k.pt",  
+            upsample_model: Union[ABPN, ESRGAN, Hat, None] = None,
+            upsample_model_name: str = "",
+        ):
+        super().__init__(detection_model_path)
+
+        self.upsample_model = None
+        if upsample_model:
+            self.upsample_model = upsample_model
+        elif upsample_model_name:
+            if upsample_model_name == "ABPN":
+                self.upsample_model = ABPN(model_path="../models/sr_mobile_python/models_modelx4.ort")
+            elif upsample_model_name == "ESRGAN":
+                self.upsample_model = ESRGAN(
+                    model_dir="../models/ESRGAN/",
+                    model_name="RealESRGAN_x4plus"
+                )
+            elif upsample_model_name == "HAT":
+                self.upsample_model = Hat()
+            else:
+                raise ValueError("Upsample model not recognized")
+
+    def forward(self, X: List[str]):
+        if self.upsample_model:
+            print("Upsampling images...")
+            X = self.upsample_model.upsample(X)
+        return self._model(X)
     

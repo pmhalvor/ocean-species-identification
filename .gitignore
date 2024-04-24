@@ -15,3 +15,6 @@ results/
 
 # Gradio 
 flagged/
+
+# YOLOv5
+runs/
