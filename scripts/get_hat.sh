@@ -1,6 +1,11 @@
 #!/bin/bash
 
-ROOT=$1
+# set too to $1 if provided else use pwd
+if [ -z "$1" ]; then
+    ROOT=$(pwd)
+else
+    ROOT=$1
+fi
 
 if [ ! -d "$ROOT/../HAT" ]; then
     cd "$ROOT/.."

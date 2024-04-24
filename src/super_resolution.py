@@ -1,14 +1,10 @@
 from fathomnet.models.yolov5 import YOLOv5Model
-from IPython.display import display
 from pathlib import Path
 from PIL import Image
 from PIL import ImageOps
-from pycocotools.coco import COCO
-from torch.profiler import profile, record_function, ProfilerActivity
-from typing import List, Union
+from typing import List
 
 import cv2
-import json
 import numpy as np
 import onnxruntime
 import os
@@ -21,8 +17,8 @@ from tqdm.auto import tqdm
 from basicsr.archs.rrdbnet_arch import RRDBNet
 from realesrgan import RealESRGANer
 
-# HAT imports (installed via scripts/get_hat.sh)
-from hat.archs.hat_arch import HAT
+# # HAT imports (installed via scripts/get_hat.sh)
+# from hat.archs.hat_arch import HAT
 
 
 class ABPN(torch.nn.Module):
@@ -228,6 +224,7 @@ class Hat(torch.nn.Module):
         verbose=False,
         device=None,
     ):
+        raise NotImplementedError("HAT is not yet supported in this version of the library")
         super(Hat, self).__init__()
         self.model = HAT(
             upscale = upscale,
@@ -313,7 +310,6 @@ class Hat(torch.nn.Module):
             # crop image to size w/ factor of 16
             input_size = img_shape[0] - (img_shape[0] % 16)
             cropped_img = self.crop_image(img, (input_size, input_size))
-            display(cropped_img) if self.verbose else None
 
             # prep image dimension order
             input_img = torch.tensor(np.array(cropped_img)).to(self.device).permute(2, 0, 1)
