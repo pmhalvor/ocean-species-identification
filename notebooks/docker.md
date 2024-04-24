@@ -1,8 +1,17 @@
-# Containerization with Docker 
+# Containerization Foundations
+## A Docker Tutorial
+
 2024-04-17 <br>
 [Per Halvorsen](https://perhalvorsen.com) | [GitHub](https://github.com/pmhalvor/ocean-species-identification) | [LinkedIn](https://www.linkedin.com/in/pmhalvor/)
 
 ---
+
+<img src="../img/docker-foundations.png" width="700" style="display: block; margin: 0 auto;" />
+<!-- center div with source -->
+<div style="text-align:center;">
+Source: <i>Vitlycke hällristningar by Daniel Rydén, 2014 (<a href="https://www.dryden.se/2014/07/tillbaka-till-bronsaldern/">Upplevelse Bloggen</a>)</i>
+</div>
+
 
 ## Introduction
 In this note, we want to explore the basics of containerization with Docker.
@@ -196,7 +205,7 @@ This will allow you to push and pull images from the registry, as well as manage
 Alternatively, you can log in through the Docker Desktop GUI.
 
 <img src="../img/DockerDesktop.png" width="500" style="display: block; margin: 0 auto;" />
-
+<div style="text-align:center;">Source: <i><a href="https://docs.docker.com/get-started/overview/#docker-architecture">Docker overview</a></i></div>
 
 ## Basic commands 
 
@@ -550,6 +559,7 @@ This will start a local server that hosts the Gradio app, accessible at the give
 Open a browser and head to the url:
 
 <img src="../img/gradio1.png" width="700" style="display: block; margin: 0 auto;" />
+<br>
 
 With that working locally, let's repeat all these steps in a Docker container.
 Be sure to close the server using `Ctrl+C` before proceeding.
@@ -631,6 +641,7 @@ $ python3 src/tools/img2video.py "data/example/mba/" "aquarium.mp4"
 The output should look something like this:
 <!-- insert gif when ready  -->
 <img src="../img/aquarium.gif" width="700" style="display: block; margin: 0 auto;" />
+<div style="text-align:center;">Source: <i>Live Open Sea Cam - Monterey Bay Aquarium (<a href="https://www.youtube.com/watch?v=R34ot1LETK0">Youtube</a>)</i></div>
 <br>
 
 To make this script more accessible, we can bake it into a Docker image that runs the script as an executable, and another that wraps the script in a Gradio app, allowing users to upload images and download the output video.
@@ -692,6 +703,8 @@ $ open docker/output/aquarium-docker.mp4
 ```
 
 <img src="../img/aquarium.gif" width="700" style="display: block; margin: 0 auto;" />
+<div style="text-align:center;">Source: <i>Live Open Sea Cam - Monterey Bay Aquarium (<a href="https://www.youtube.com/watch?v=R34ot1LETK0">Youtube</a>)</i></div>
+<br>
 
 Great! We now have a Docker image that works as an executable app. 
 It can convert a series of images into a video, without the need for `opencv` or Python to be installed on the host machine.
@@ -813,6 +826,7 @@ If all goes well, you should now be able to interact with the app, upload your i
 That means, this Docker image can be shared and run on any system with Docker installed. 
 
 <img src="../img/gradio2.png" width="700" style="display: block; margin: 0 auto;" />
+<br>
 
 To share it with the world, let's push it to Docker Hub.
 
