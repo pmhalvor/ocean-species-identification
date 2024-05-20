@@ -69,7 +69,7 @@ interface = gr.Interface(
             label="super_resolution",
         ),
         gr.Radio(
-            ["object_detection", "multi_object_tracking"],
+            ["object_detection"],
             label="task",
         )
     ],
