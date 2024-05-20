@@ -18,12 +18,12 @@ ENV SERVER_PORT 7861
 WORKDIR /app
 COPY . .
 
+# Install the necessary dependencies for opencv and gradio
+RUN apt-get update && apt-get install ffmpeg libsm6 libxext6 -y
+RUN python3 -m pip install --upgrade pip && pip install -r requirements.txt
+
 # Copy models from the model-prep stage
 COPY --from=model-prep /models /models
-
-# Install the necessary dependencies for opencv and gradio
-RUN python3 -m pip install --upgrade pip && pip install -r requirements.txt
-RUN apt-get update && apt-get install ffmpeg libsm6 libxext6 -y
 
 # Export the server port
 EXPOSE $SERVER_PORT
